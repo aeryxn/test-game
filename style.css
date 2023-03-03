@@ -1,0 +1,15 @@
+* {
+	padding: 0px;
+	margin: 0px;
+}
+
+html {
+	display: grid;
+	place-items: center;
+}
+
+canvas {
+	background-color: lightblue;
+	position: absolute;
+	left: 20%;
+}
