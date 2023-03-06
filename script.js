@@ -1,5 +1,12 @@
+const { Sprite } = require("three");
+
 var c = document.getElementById("canvas");
 var ctx = c.getContext("2d");
+const cHeight = window.innerHeight - 20;
+const cWidth = window.innerWidth - 20;
+
+c.height = cHeight;
+c.width = cWidth;
 
 function lerp(start, end, t, easingFunc) {
 	return start * (1 - easingFunc(t)) + end * easingFunc(t);
@@ -17,8 +24,8 @@ class obstacles {
 	}
 }
 
-platform = new obstacles(100, 500, 350, 500);
-platform2 = new obstacles(450, 430, 600, 430);
+platform = new obstacles(cWidth - 900, cHeight - 100, cWidth - 650, cHeight - 100);
+platform2 = new obstacles(cWidth - 550, cHeight - 170, cWidth - 400, cHeight - 170);
 class player {
 	constructor(game) {
 		this.health = 100;
@@ -27,8 +34,10 @@ class player {
 		this.game = game;
 		this.isMoving = false;
 		this.ReadyToJump = true;
-		this.img = document.getElementById("stickman");
-		this.pos = { x: 45, y: 500 };
+		this.img = new Image();
+		this.img.src = './1b24350acb1c425.png';
+		this.frameIndex = 0;
+		this.pos = { x: 45, y: cHeight - 100};
 		document.addEventListener("keydown", (e) => this.move(e));
 	}
 	move(e) {
@@ -82,12 +91,16 @@ class player {
 		}
 	}
 
+
+	animate() {
+		const spriteWidth = 40;
+	}
 	Update() {
-		if (this.pos.x > 1000) {
+		if (this.pos.x > cWidth) {
 			this.pos.x = -50;
 		}
 		if (this.pos.x < -50) {
-			this.pos.x = 1000;
+			this.pos.x = cWidth;
 		}
 
 		if (this.isMoving) {
@@ -113,7 +126,7 @@ class player {
 }
 class Game {
 	constructor() {
-		this.ground = 500;
+		this.ground = cHeight - 100;
 		this.player = new player(this);
 		this.obstaclesList = [];
 	}
@@ -122,7 +135,7 @@ class Game {
 		this.obstaclesList.push(platform2);
 		for (let i = 0; i < this.obstaclesList.length; i++) {
 			let platformName = this.obstaclesList[i];
-			if (this.player.pos.x + 100 > platformName.startingPoint.x && this.player.pos.x < platformName.endPoint.x && this.player.pos.y + 100 > platformName.startingPoint.y && this.player.pos.y < platformName.startingPoint.y) {
+			if (this.player.pos.x + 100 > platformName.startingPoint.x && this.player.pos.x < platformName.endPoint.x && this.player.pos.y + 90 == platformName.startingPoint.y && this.player.pos.y < platformName.startingPoint.y) {
 				this.player.gravity = false;
 				this.player.canJump = true;
 				if (this.player.pos.x + 45 < platformName.startingPoint.x || this.player.pos.x + 50 > platformName.endPoint.x) {
@@ -155,19 +168,20 @@ class enemies {
 
 		// update the enemy's position
 		this.pos.x = newX;
-
 		ctx.drawImage(this.img, this.pos.x, this.pos.y, this.width, this.height);
 	}
 }
 
-enemy1 = new enemies(100, document.getElementById("batman"), 200, 500, 100, 100);
+enemy1 = new enemies(100, document.getElementById("batman"), cHeight - 900, cWidth - 100, 100, 100);
 
 function Update() {
-	ctx.clearRect(0, 0, 1000, 600);
+	ctx.clearRect(0, 0, cWidth, cHeight);
 	Game1.Update();
 	platform.Update();
 	platform2.Update();
 	enemy1.Update();
+	console.log(enemy1.pos.y);
+	console.log(cHeight);
 	requestAnimationFrame(Update);
 }
 
