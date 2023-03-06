@@ -1,5 +1,3 @@
-const { Sprite } = require("three");
-
 var c = document.getElementById("canvas");
 var ctx = c.getContext("2d");
 const cHeight = window.innerHeight - 20;
@@ -24,24 +22,47 @@ class obstacles {
 	}
 }
 
-platform = new obstacles(cWidth - 900, cHeight - 100, cWidth - 650, cHeight - 100);
-platform2 = new obstacles(cWidth - 550, cHeight - 170, cWidth - 400, cHeight - 170);
+class levels {
+	constructor(level) {
+		this.level = level;
+		this.obstaclesList = [];
+	}
+	levelSwitch() {
+		if (this.level == 1) {
+			let platform = new obstacles(cWidth - 900, cHeight - 100, cWidth - 650, cHeight - 100);
+			let platform2 = new obstacles(cWidth - 550, cHeight - 170, cWidth - 400, cHeight - 170);
+			if (this.obstaclesList.length !== 2) {
+				this.obstaclesList.push(platform);
+				this.obstaclesList.push(platform2);
+			}
+		}
+	}
+	Update() {
+		this.levelSwitch();
+	}
+}
+
+level = new levels(1);
+
 class player {
 	constructor(game) {
-		this.health = 100;
+		this.heartImg = document.getElementById("mcHeart");
+		this.health = 3;
 		this.gravity = false;
 		this.canJump = true;
 		this.game = game;
 		this.isMoving = false;
 		this.ReadyToJump = true;
-		this.img = new Image();
-		this.img.src = './1b24350acb1c425.png';
-		this.frameIndex = 0;
-		this.pos = { x: 45, y: cHeight - 100};
+		this.img = document.getElementById("stickman");
+		this.pos = { x: 45, y: cHeight - 100 };
 		document.addEventListener("keydown", (e) => this.move(e));
 	}
 	move(e) {
-		console.log(e.key);
+		if (e.key == "m") {
+			console.log("test");
+			this.img = document.getElementById("superman");
+		}
+
 		if (e.key == "d" || e.key == "ArrowRight") {
 			this.isMoving = true;
 			this.dx = 1;
@@ -90,11 +111,6 @@ class player {
 			}
 		}
 	}
-
-
-	animate() {
-		const spriteWidth = 40;
-	}
 	Update() {
 		if (this.pos.x > cWidth) {
 			this.pos.x = -50;
@@ -115,12 +131,16 @@ class player {
 		if (this.gravity == true) {
 			this.pos.y += 10;
 			this.canJump = false;
-			if (this.pos.y == this.game.ground) {
+			if (this.pos.y >= this.game.ground) {
 				this.gravity = false;
 				this.canJump = true;
+				this.pos.y = this.game.ground;
 			}
 		}
-
+		console.log(this.health);
+		ctx.drawImage(this.heartImg, this.pos.x + 60, this.pos.y - 20, 20, 20);
+		ctx.drawImage(this.heartImg, this.pos.x + 40, this.pos.y - 20, 20, 20);
+		ctx.drawImage(this.heartImg, this.pos.x + 20, this.pos.y - 20, 20, 20);
 		ctx.drawImage(this.img, this.pos.x, this.pos.y, 100, 100);
 	}
 }
@@ -128,13 +148,11 @@ class Game {
 	constructor() {
 		this.ground = cHeight - 100;
 		this.player = new player(this);
-		this.obstaclesList = [];
 	}
 	Update() {
-		this.obstaclesList.push(platform);
-		this.obstaclesList.push(platform2);
-		for (let i = 0; i < this.obstaclesList.length; i++) {
-			let platformName = this.obstaclesList[i];
+		let platformName;
+		for (let i = 0; i < level.obstaclesList.length; i++) {
+			platformName = level.obstaclesList[i];
 			if (this.player.pos.x + 100 > platformName.startingPoint.x && this.player.pos.x < platformName.endPoint.x && this.player.pos.y + 90 == platformName.startingPoint.y && this.player.pos.y < platformName.startingPoint.y) {
 				this.player.gravity = false;
 				this.player.canJump = true;
@@ -142,6 +160,7 @@ class Game {
 					this.player.gravity = true;
 				}
 			}
+			platformName.Update();
 		}
 		this.player.Update();
 	}
@@ -168,21 +187,28 @@ class enemies {
 
 		// update the enemy's position
 		this.pos.x = newX;
+		console.log(this.pos.x);
+		if (this.pos.x - 45 <= Game1.player.pos.x && this.pos.x + 45 > Game1.player.pos.x) {
+			if (Game1.player.health <= 2) {
+				setTimeout(() => {
+					Game1.player.health -= 1;
+				});
+			} else {
+				Game1.player.health -= 1;
+			}
+		}
 		ctx.drawImage(this.img, this.pos.x, this.pos.y, this.width, this.height);
 	}
 }
 
-enemy1 = new enemies(100, document.getElementById("batman"), cHeight - 900, cWidth - 100, 100, 100);
+enemy1 = new enemies(100, document.getElementById("batman"), -50, cHeight - 100, 100, 100);
 
 function Update() {
+	requestAnimationFrame(Update);
 	ctx.clearRect(0, 0, cWidth, cHeight);
 	Game1.Update();
-	platform.Update();
-	platform2.Update();
 	enemy1.Update();
-	console.log(enemy1.pos.y);
-	console.log(cHeight);
-	requestAnimationFrame(Update);
+	level.Update();
 }
 
 Update();
