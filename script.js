@@ -46,6 +46,9 @@ level = new levels(1);
 
 class player {
 	constructor(game) {
+		this.gameOver1 = false;
+		this.timer = null;
+		this.enemyOnPlayer = false;
 		this.heartImg = document.getElementById("mcHeart");
 		this.health = 3;
 		this.gravity = false;
@@ -57,7 +60,29 @@ class player {
 		this.pos = { x: 45, y: cHeight - 100 };
 		document.addEventListener("keydown", (e) => this.move(e));
 	}
+	gameOver() {
+		ctx.font = "60px Arial";
+		ctx.fillText("Game Over", cWidth / 2, cHeight / 2);
+		this.isMoving = false;
+	}
+	startTimer() {
+		if (this.gameOver1 == false) {
+			this.timer = setInterval(() => {
+				if (this.enemyOnPlayer) {
+					this.health--;
+				}
+			}, 250);
+		}
+	}
+
+	stopTimer() {
+		clearInterval(this.timer);
+		this.timer = null;
+	}
 	move(e) {
+		if (this.health <= 0) {
+			return;
+		}
 		if (e.key == "m") {
 			console.log("test");
 			this.img = document.getElementById("superman");
@@ -112,6 +137,12 @@ class player {
 		}
 	}
 	Update() {
+		console.log(this.gameOver1);
+		if (this.enemyOnPlayer && !this.timer) {
+			this.startTimer();
+		} else if (!this.enemyOnPlayer && this.timer) {
+			this.stopTimer();
+		}
 		if (this.pos.x > cWidth) {
 			this.pos.x = -50;
 		}
@@ -137,10 +168,20 @@ class player {
 				this.pos.y = this.game.ground;
 			}
 		}
-		console.log(this.health);
-		ctx.drawImage(this.heartImg, this.pos.x + 60, this.pos.y - 20, 20, 20);
-		ctx.drawImage(this.heartImg, this.pos.x + 40, this.pos.y - 20, 20, 20);
-		ctx.drawImage(this.heartImg, this.pos.x + 20, this.pos.y - 20, 20, 20);
+		if (this.health == 3) {
+			ctx.drawImage(this.heartImg, this.pos.x + 60, this.pos.y - 20, 20, 20);
+			ctx.drawImage(this.heartImg, this.pos.x + 40, this.pos.y - 20, 20, 20);
+			ctx.drawImage(this.heartImg, this.pos.x + 20, this.pos.y - 20, 20, 20);
+		} else if (this.health == 2) {
+			ctx.drawImage(this.heartImg, this.pos.x + 40, this.pos.y - 20, 20, 20);
+			ctx.drawImage(this.heartImg, this.pos.x + 20, this.pos.y - 20, 20, 20);
+		} else if (this.health == 1) {
+			ctx.drawImage(this.heartImg, this.pos.x + 20, this.pos.y - 20, 20, 20);
+		} else if (this.health <= 0) {
+			this.gameOver1 = true;
+			this.gameOver();
+		}
+
 		ctx.drawImage(this.img, this.pos.x, this.pos.y, 100, 100);
 	}
 }
@@ -187,21 +228,16 @@ class enemies {
 
 		// update the enemy's position
 		this.pos.x = newX;
-		console.log(this.pos.x);
-		if (this.pos.x - 45 <= Game1.player.pos.x && this.pos.x + 45 > Game1.player.pos.x) {
-			if (Game1.player.health <= 2) {
-				setTimeout(() => {
-					Game1.player.health -= 1;
-				});
-			} else {
-				Game1.player.health -= 1;
-			}
+		if (this.pos.x - 45 <= Game1.player.pos.x && this.pos.x + 45 > Game1.player.pos.x && this.pos.y <= Game1.player.pos.y + 70) {
+			Game1.player.enemyOnPlayer = true;
+		} else {
+			Game1.player.enemyOnPlayer = false;
 		}
 		ctx.drawImage(this.img, this.pos.x, this.pos.y, this.width, this.height);
 	}
 }
 
-enemy1 = new enemies(100, document.getElementById("batman"), -50, cHeight - 100, 100, 100);
+enemy1 = new enemies(100, document.getElementById("batman"), cWidth - 20, cHeight - 100, 100, 100);
 
 function Update() {
 	requestAnimationFrame(Update);
